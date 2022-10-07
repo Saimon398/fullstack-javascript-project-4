@@ -1,11 +1,12 @@
 import nock from 'nock';
 import path from 'path';
-import os, { tmpdir } from 'os';
+import os from 'os';
 import fs from 'fs/promises';
-import pageLoader from '../index.js';
 import { fileURLToPath } from 'url';
-import { expect, beforeAll, beforeEach, afterEach } from '@jest/globals';
-
+import {
+  test, expect, beforeEach,
+} from '@jest/globals';
+import pageLoader from '../index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,21 +16,20 @@ let tmpDir;
 
 /**
  * @description Return path to fixture
- * @param {String} filename 
+ * @param {String} filename
  * @returns {String}
  */
 const getFixturePath = (filename) => path.join(__dirname, '..', '__fixtures__', filename);
 
 nock.disableNetConnect();
 
-beforeEach (async () => {
+beforeEach(async () => {
   tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-'));
   expected = await fs.readFile(getFixturePath('content.html'), 'utf-8');
 });
 
 test('page loader', async () => {
-
-  nock('https://ru.hexlet.io') 
+  nock('https://ru.hexlet.io')
     .get('/courses')
     .reply(200, expected);
 
@@ -37,5 +37,4 @@ test('page loader', async () => {
   const [actual] = await fs.readdir(tmpDir, 'utf-8');
   const received = await fs.readFile(path.resolve(tmpDir, actual), 'utf-8');
   expect(received).toEqual(expected);
-  
 });

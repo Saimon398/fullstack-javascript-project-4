@@ -4,8 +4,8 @@ import path from 'path';
 
 /**
  * @description Return output filepath
- * @param {String} url 
- * @param {String} extension 
+ * @param {String} url
+ * @param {String} extension
  */
 const getOutputFilename = (url, extension) => {
   const { hostname, pathname } = new URL(url);
@@ -18,16 +18,14 @@ const getOutputFilename = (url, extension) => {
  * @param {String} url
  * @param {String} dirpath place where loaded pages are kept
  */
-export default (url, dirpath) => {
-  return axios.get(url)
-    .catch((error) => console.error(error))
-    .then(({ data }) => {
-      const filepath = getOutputFilename(url, '.html');
-      const outputPath = path.join(dirpath, filepath);
-      fs.writeFile(outputPath, data);
-      return outputPath;
-    })
-    .catch((error) => console.error(error))
-    .then((outputPath) => console.log(outputPath))
-    .catch((error) => console.error(error));
-};
+export default (url, dirpath) => axios.get(url)
+  .catch((error) => console.error(error))
+  .then(({ data }) => {
+    const filepath = getOutputFilename(url, '.html');
+    const outputPath = path.join(dirpath, filepath);
+    fs.writeFile(outputPath, data);
+    return outputPath;
+  })
+  .catch((error) => console.error(error))
+  .then((outputPath) => console.log(outputPath))
+  .catch((error) => console.error(error));

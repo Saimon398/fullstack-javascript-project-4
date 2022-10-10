@@ -33,7 +33,7 @@ test('page loader', async () => {
     .get('/courses')
     .reply(200, expected);
 
-  await pageLoader(url, tmpDir);
+  await pageLoader(url);
   const [actual] = await fs.readdir(tmpDir, 'utf-8');
   const received = await fs.readFile(path.resolve(tmpDir, actual), 'utf-8');
   expect(received).toEqual(expected);

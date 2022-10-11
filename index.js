@@ -13,6 +13,7 @@ const getOutputFilename = (url, extension) => {
   const filename = `${[hostname, pathname].join('').replace(/[^a-z]/g, '-')}${extension}`;
   return filename;
 };
+
 /**
  * @description Return dirname where loaded files are kept
  * @param {String} url
@@ -22,57 +23,89 @@ const getOutputDirname = (url, extension) => {
   const dirname = `${[hostname, pathname].join('').replace(/[^a-z]/g, '-')}${extension}`;
   return dirname;
 };
+
 /**
- * @description Parse data and return needed elements
- * @param {String} data
+ * @description Check if URL is local
+ * @param {String} checkedURL
+ * @param {String} localURL
+ * @returns {Boolean}
  */
-const parse = (data) => {
-  const $ = cheerio.load(data);
-  const attributesByElems = {
-    img: 'src',
-  };
-  const links = [];
-
-  $(Object.keys(attributesByElems))
-    .each((i, tagName) => {
-      const elements = $('html').find(tagName); // вернулся массив этих элементов
-      const attributes = elements
-        .map((j, element) => $(element).attr(attributesByElems[element]))
-        .get();
-      links[i] = attributes;
-    });
-
-  return links
-    .flat()
-    .map(({ src }) => src);
+const isLocal = (checkedURL, localURL) => {
+  if (checkedURL.startsWith('/')) {
+    return true;
+  }
+  const { hostname: checkedHostname } = new URL(checkedURL);
+  const { hostname: localHostname } = new URL(localURL);
+  return checkedHostname === localHostname;
 };
+
+/**
+ * @description Parse data and return needed links
+ * @param {String} data
+ * @param {String} url
+ */
+const parse = (html, url) => {
+  const $ = cheerio.load(html);
+  const links = [];
+  const attributesByTags = {
+    img: 'src',
+    script: 'src',
+    link: 'href',
+  };
+  $(Object.keys(attributesByTags))
+    .each((index, tagName) => {
+      const elements = $('html').find(tagName);
+      const attributes = elements
+        .map((index, element) => $(element)
+          .attr(attributesByTags[element]))
+        .get()
+        .filter(({ src, href }) => {
+          if (src || href) {
+            const checkedSource = src ?? href;
+            return isLocal(checkedSource, url);
+          }
+        });
+      links[index] = attributes;
+    });
+  return links.flat();
+};
+
 /**
  * @description Return loaded images
  * @param {Object} links
  * @param {String} url
- * @returns
+ * @returns {Promise}
  */
-const loadImages = (links) => {
-  const promises = links.map((link) => axios({
+const loadLocalSources = (links) => {
+  const paths = links.map(({ src, href }) => src ?? href);
+  const promises = paths.map((path) => axios({
     method: 'get',
-    url: `${link}`,
+    url: `${path}`,
     responseType: 'arraybuffer',
   }));
 
   return Promise.all(promises)
     .catch((error) => console.error(error));
 };
+
 /**
- * @description Update attributes for img-elements by new ones
- * @param {String} html HTML-markup from loaded page
- * @param {Object} attributes Array with new attribute names for images in order
- * @returns {String}
+ * @description Change names of local attributes to the new ones
+ * @param {String} html
+ * @param {Object} links
+ * @returns
  */
-const updateAtributes = (html, attributes) => {
+const updateAttributes = (html, links) => {
   const $ = cheerio.load(html);
-  $('html').find('img').map((index, descendant) => $(descendant).attr('src', attributes[index]));
+  const names = links.map(({ src, href }) => src ?? href);
+  const changedNames = names.map((name) => getOutputFilename(name, path.extname(name)));
+  links.forEach(({ src, href }, index) => {
+    const checkedAttribute = src ? 'src' : 'href';
+    const checkedValue = names[index];
+    $('html').find(`[${checkedAttribute}=${checkedValue}]`).attr(checkedAttribute, changedNames[index]);
+  });
   return $.html();
 };
+
 /**
  * @description Load pages by given URL and keeps them in the dir
  * @param {String} url
@@ -90,7 +123,7 @@ export default (url, dirpath) => {
   return axios.get(url)
     .then(({ data }) => {
       markup = data;
-      links = parse(data);
+      links = parse(data, url);
       absoluteDirpath = path.join(dirpath, outputDirname);
       return fs.mkdir(absoluteDirpath);
     })
@@ -98,19 +131,16 @@ export default (url, dirpath) => {
       absoluteFilepath = path.join(absoluteDirpath, outputFilename);
       return fs.writeFile(absoluteFilepath, markup);
     })
-    .then(() => loadImages(links))
+    .then(() => loadLocalSources(links))
     .then((responses) => Promise.all(responses.map(({ config, data }) => {
       const extension = path.extname(config.url);
-      const imageName = getOutputFilename(config.url, extension);
-      const absoluteImagePath = path.join(absoluteDirpath, imageName);
-      return fs.writeFile(absoluteImagePath, data);
+      const sourceName = getOutputFilename(config.url, extension);
+      const absoluteSourcePath = path.join(absoluteDirpath, sourceName);
+      return fs.writeFile(absoluteSourcePath, data, 'utf-8');
     })))
-    .then(() => fs.readdir(absoluteDirpath))
-    .then((names) => {
-      const imageNames = names.map((name) => path.join(outputDirname, name));
-      const markupWithUpdatedAttributes = updateAtributes(markup, imageNames);
-      // Space for formatting markup if it will be incorrect in comparison to the prevoius one
-      return fs.writeFile(absoluteFilepath, markupWithUpdatedAttributes, 'utf-8');
+    .then(() => { 
+      const updatedHTML = updateAttributes(markup, links);
+      return fs.writeFile(absoluteFilepath, updatedHTML, 'utf-8');
     })
     .catch((error) => console.error(error));
 };

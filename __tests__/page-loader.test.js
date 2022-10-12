@@ -23,18 +23,9 @@ const getFixturePath = (filename) => path.join(__dirname, '..', '__fixtures__', 
 
 nock.disableNetConnect();
 
-beforeEach(async () => {
-  tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-'));
-  expected = await fs.readFile(getFixturePath('content.html'), 'utf-8');
+beforeEach (async () => {
+  // Тут должна создаваться временная директория, куда будет отправляться запрос
+  
 });
 
-test('page loader', async () => {
-  nock('https://ru.hexlet.io')
-    .get('/courses')
-    .reply(200, expected);
 
-  await pageLoader(url);
-  const [actual] = await fs.readdir(tmpDir, 'utf-8');
-  const received = await fs.readFile(path.resolve(tmpDir, actual), 'utf-8');
-  expect(received).toEqual(expected);
-});

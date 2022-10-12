@@ -1,5 +1,5 @@
 /**
- * This module provides a function that defines 
+ * This module provides a function that defines
  * if the given URL is local or not
  */
 
@@ -9,7 +9,7 @@
  * @param {String} localURL
  * @returns {Boolean}
  */
- export default (checkedURL, localURL) => {
+export default (checkedURL, localURL) => {
   if (checkedURL.startsWith('/')) {
     return true;
   }

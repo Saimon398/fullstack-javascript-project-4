@@ -23,9 +23,7 @@ const getFixturePath = (filename) => path.join(__dirname, '..', '__fixtures__', 
 
 nock.disableNetConnect();
 
-beforeEach (async () => {
+beforeEach(async () => {
   // Тут должна создаваться временная директория, куда будет отправляться запрос
-  
+
 });
-
-

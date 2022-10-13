@@ -16,7 +16,7 @@ export const isLocal = (verifiableURL, localURL) => {
   const { hostname: localHostName } = new URL(localURL);
   return verifiableHostName === localHostName;
 };
-
+// ПРОВЕРИТЬ, КАК ФОРМИРУЕТСЯ ИМЯ !!!
 /**
  * @description Return updated filename for loaded files
  * @param {String} url
@@ -33,9 +33,10 @@ export const getOutputName = (url, extension) => {
  * @description Change names of local attributes to the new ones
  * @param {String} html Markup to be updated
  * @param {Object} links Links to local sourses whose names to be updated
+ * @param {String} dirname Name of directory where loaded pages are kept
  * @returns {String} Updated markup
  */
-export const updateAttributes = (html, links) => {
+export const updateAttributes = (html, links, dirname) => {
   const $ = cheerio.load(html);
   const names = links.map(({ src, href }) => src ?? href);
   const changedNames = names.map((name) => getOutputName(name, path.extname(name)));
@@ -44,10 +45,10 @@ export const updateAttributes = (html, links) => {
     const verifiableValue = names[index];
     $('html')
       .find(`[${verifiableAttribute}=${verifiableValue}]`)
-      .attr(verifiableAttribute, changedNames[index]);
+      .attr(verifiableAttribute, `${dirname}/${changedNames[index]}`);
   });
   // Здесь нужно отформатировать структуру разметки, так как cheerio ее ломает
-  const updatedHTML = prettier.format($.html(), { parser: 'html' }); 
+  const updatedHTML = prettier.format($.html(), { parser: 'html' });
   return updatedHTML;
 };
 

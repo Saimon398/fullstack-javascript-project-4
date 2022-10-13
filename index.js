@@ -50,7 +50,7 @@ export default (url, dirpath) => {
       return fs.writeFile(absoluteSourcePath, data, 'utf-8');
     })))
     .then(() => {
-      const updatedHTML = updateAttributes(markup, links);
+      const updatedHTML = updateAttributes(markup, links, outputDirname);
       logger('Update home page file with new names for local resourses');
       return fs.writeFile(absoluteFilepath, updatedHTML, 'utf-8');
     })

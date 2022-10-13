@@ -1,29 +1,54 @@
-// import nock from 'nock';
-// import path from 'path';
-// import os from 'os';
-// import fs from 'fs/promises';
-// import { fileURLToPath } from 'url';
-// import {
-//   test, expect, beforeEach,
-// } from '@jest/globals';
-// import pageLoader from '../index.js';
+import nock from 'nock';
+import path from 'path';
+import os from 'os';
+import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
+import {
+  test, expect, beforeEach, beforeAll,
+} from '@jest/globals';
+import { readFile } from 'fs';
+import pageLoader from '../index.js';
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-// const url = 'https://ru.hexlet.io/courses';
-// let expected;
-// let tmpDir;
+// Создаются константы, которые формируют путь до фикстур
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+/**
+ * @description Return path to fixture
+ * @param {String} filename
+ * @returns {String}
+ */
+const getFixturePath = (filename) => path.join(__dirname, '..', '__fixtures__', filename);
 
-// /**
-//  * @description Return path to fixture
-//  * @param {String} filename
-//  * @returns {String}
-//  */
-// const getFixturePath = (filename) => path.join(__dirname, '..', '__fixtures__', filename);
+nock.disableNetConnect();
 
-// nock.disableNetConnect();
+let expected1;
+let expected2;
+let expected3;
+let tempDirName;
 
-// beforeEach(async () => {
-//   // Тут должна создаваться временная директория, куда будет отправляться запрос
+beforeAll(async () => {
+  [expected1, expected2, expected3] = await Promise.all([
+    fs.readFile(getFixturePath('before.html'), 'utf-8'),
+    fs.readFile(getFixturePath('after.html'), 'utf-8'),
+    fs.readFile(getFixturePath('content.html'), 'utf-8'),
+  ]);
+  // nock('https://ru.hexlet.io').get('/courses').reply(200, expected1);
+  // nock('https://ru.hexlet.io').get('/courses').reply(200, expected2);
+  nock('https://ru.hexlet.io').get('/courses').reply(200, expected3); // Перехватываем запрос по URL = ru.hexlet.io/courses
+});
 
-// });
+beforeEach(async () => {
+  // Будет создаваться перед каждым тестом, и туда будут сохраняться данные
+  tempDirName = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-'));
+});
+
+//  Сами тесты
+
+test('load and save pages with no local resourses', async () => {
+  // Сохраняем данные во временной директории
+  await pageLoader('https://ru.hexlet.io/courses', tempDirName);
+  // Теперь мы должны прочитать данные из этой директории
+  const received = await fs.readFile(path.join(tempDirName, 'ru-hexlet-io-courses_files/ru-hexlet-io-courses.html'), 'utf-8');
+  // Сравниваем фикстуру и загруженные данные
+  expect(received).toEqual(expected3);
+});

@@ -24,8 +24,6 @@
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
     "@jest/globals": "^29.1.2",
-    "axios-debug-log": "^0.8.4",
-    "debug": "^4.3.4",
     "eslint": "^8.24.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0",
@@ -35,7 +33,9 @@
   },
   "dependencies": {
     "axios": "^1.0.0",
+    "axios-debug-log": "^0.8.4",
     "cheerio": "^1.0.0-rc.12",
-    "commander": "^9.4.1"
+    "commander": "^9.4.1",
+    "debug": "^4.3.4"
   }
 }

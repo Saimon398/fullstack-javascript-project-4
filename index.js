@@ -2,8 +2,10 @@ import axios from 'axios';
 import fs from 'fs/promises';
 import path from 'path';
 import debug from 'debug';
-import { getOutputName, loadLocalSources, updateAttributes, parse } from './src/utils.js';
-import 'axios-debug-log';
+import {
+  getOutputName, loadLocalSources, updateAttributes, parse,
+} from './src/utils.js';
+// import 'axios-debug-log';
 
 const logger = debug('page-loader');
 

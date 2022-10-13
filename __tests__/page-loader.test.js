@@ -45,6 +45,8 @@ beforeEach(async () => {
 //  Сами тесты
 
 test('load and save pages with no local resourses', async () => {
+  // Выводим временную директорию
+  console.log(tempDirName);
   // Сохраняем данные во временной директории
   await pageLoader('https://ru.hexlet.io/courses', tempDirName);
   // Теперь мы должны прочитать данные из этой директории

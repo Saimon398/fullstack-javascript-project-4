@@ -1,7 +1,7 @@
 import * as cheerio from 'cheerio';
 import path from 'path';
 import axios from 'axios';
-
+import prettier from 'prettier';
 /**
  * @description Check if URL is local
  * @param {String} verifiableURL URL to be verified
@@ -46,7 +46,9 @@ export const updateAttributes = (html, links) => {
       .find(`[${verifiableAttribute}=${verifiableValue}]`)
       .attr(verifiableAttribute, changedNames[index]);
   });
-  return $.html();
+  // Здесь нужно отформатировать структуру разметки, так как cheerio ее ломает
+  const updatedHTML = prettier.format($.html(), { parser: 'html' }); 
+  return updatedHTML;
 };
 
 /**

@@ -2,10 +2,12 @@ import * as cheerio from 'cheerio';
 import path from 'path';
 import axios from 'axios';
 import prettier from 'prettier';
+import Listr from 'listr';
+
 /**
- * @description Check if URL is local
- * @param {String} verifiableURL URL to be verified
- * @param {String} localURL URL to be compared with
+ * @description Check if URL is Local
+ * @param {String} verifiableURL URL to be Verified
+ * @param {String} localURL URL to be Compared to
  * @returns {Boolean}
  */
 export const isLocal = (verifiableURL, localURL) => {
@@ -16,12 +18,12 @@ export const isLocal = (verifiableURL, localURL) => {
   const { hostname: localHostName } = new URL(localURL);
   return verifiableHostName === localHostName;
 };
-// ПРОВЕРИТЬ, КАК ФОРМИРУЕТСЯ ИМЯ !!!
+
 /**
- * @description Return updated filename for loaded files
+ * @description Return Update Name for Loaded Pages
  * @param {String} url
  * @param {String} extension
- * @returns {String} Updated filename
+ * @returns {String} Updated Name
  */
 export const getOutputName = (url, extension) => {
   const { hostname, pathname } = new URL(url);
@@ -47,15 +49,14 @@ export const updateAttributes = (html, links, dirname) => {
       .find(`[${verifiableAttribute}=${verifiableValue}]`)
       .attr(verifiableAttribute, `${dirname}/${changedNames[index]}`);
   });
-  // Здесь нужно отформатировать структуру разметки, так как cheerio ее ломает
   const updatedHTML = prettier.format($.html(), { parser: 'html' });
   return updatedHTML;
 };
 
 /**
- * @description Parse data and return needed links
- * @param {String} data Data to be parsed
- * @param {String} url URL where the data is located
+ * @description Parse Data and Return Needed Links
+ * @param {String} data Data to be Parsed
+ * @param {String} url URL Where the Data is Located
  */
 export const parse = (html, url) => {
   const $ = cheerio.load(html);
@@ -85,19 +86,25 @@ export const parse = (html, url) => {
 };
 
 /**
- * @description Return loaded local sources
- * @param {Object} links Links to local resourses whose names to be updated
- * @returns {Promise} Array of loaded local sources
+ * @description Return Loaded Local Assets
+ * @param {Object} links Links to Local Assets Whose Names to be Updated
+ * @returns {Promise} Array of Loaded Local Assets
  */
-export const loadLocalSources = (links) => {
+export const loadLocalAssets = (links) => {
+  const responses = [];
   const paths = links.map(({ src, href }) => src ?? href);
-  const promises = paths.map((sourcePath) => axios({
-    method: 'get',
-    url: `${sourcePath}`,
-    responseType: 'arraybuffer',
+  const promises = paths.map((assetPath) => ({
+    title: `${assetPath}`,
+    task: () => axios({
+      method: 'get',
+      url: `${assetPath}`,
+      responseType: 'arraybuffer',
+    })
+      .then((response) => responses.push(response))
+      .catch((error) => console.error(error)),
   }));
-
-  return Promise.all(promises)
+  const tasks = new Listr(promises, { concurrent: true, exitOnError: false });
+  return tasks.run()
+    .then(() => Promise.all(responses))
     .catch((error) => console.error(error));
 };
-

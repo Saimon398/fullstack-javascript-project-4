@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import debug from 'debug';
 import {
-  getOutputName, loadLocalSources, updateAttributes, parse,
+  getOutputName, loadLocalAssets, updateAttributes, parse,
 } from './src/utils.js';
 // import 'axios-debug-log';
 
@@ -41,7 +41,7 @@ export default (url, dirpath) => {
       logger(`Save home page file: ${absoluteFilepath}`);
       return fs.writeFile(absoluteFilepath, markup, 'utf-8');
     })
-    .then(() => loadLocalSources(links))
+    .then(() => loadLocalAssets(links))
     .then((responses) => Promise.all(responses.map(({ config, data }) => {
       const extension = path.extname(config.url);
       const sourceName = getOutputName(config.url, extension);

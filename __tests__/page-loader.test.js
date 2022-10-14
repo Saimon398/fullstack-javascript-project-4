@@ -4,7 +4,7 @@ import os from 'os';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import {
-  test, expect, beforeEach, beforeAll,
+  test, expect, beforeEach, beforeAll, describe,
 } from '@jest/globals';
 import pageLoader from '../index.js';
 
@@ -39,28 +39,16 @@ beforeEach(async () => {
   tempDirName = await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-'));
 });
 
-test('load and save pages with no local resourses', async () => {
-  await pageLoader('https://ru.hexlet.io/courses', tempDirName);
-  const filepath = path.join(tempDirName, 'ru-hexlet-io-courses_files/ru-hexlet-io-courses.html');
-  const received = await fs.readFile(filepath, 'utf-8');
-  expect(received).toEqual(expected3);
-});
+describe('load pages', () => {
+  test('load and save pages', async () => {
+    await pageLoader('https://ru.hexlet.io/courses', tempDirName);
+    const filepath = path.join(tempDirName, 'ru-hexlet-io-courses_files/ru-hexlet-io-courses.html');
+    const received = await fs.readFile(filepath, 'utf-8');
+    expect(received).toEqual(expected3);
+  });
 
-// 2) Проверяет сохранение локальных ресурсов
-// test('load and save pages with local resourses', async () => {
-//   console.log(tempDirName);
-//   await pageLoader('https://ru.hexlet.io/languages', tempDirName);
-//   const filepath = path
-// .join(tempDirName, 'ru-hexlet-io-languages_files/ru-hexlet-io-languages.html');
-//   const dirpath = path.join(tempDirName, 'ru-hexlet-io-languages');
-
-//   const received2 = await fs.readFile(filepath, 'utf-8');
-//   expect(received2).toEqual(expected2);
-//   const loadedFiles = await fs.readdir(dirpath);
-//   expect(loadedFiles).toHaveLength(4);
-// });
-
-test('throwing errors', async () => {
-  expect(() => pageLoader('non-existing url', tempDirName)).toThrow('Invalid URL');
-  expect(() => pageLoader('https://ru.hexlet.io/lessons')).rejects.toThrow('404');
+  test('throwing errors', async () => {
+    expect(() => pageLoader('non-existing url', tempDirName)).toThrow('Invalid URL');
+    expect(() => pageLoader('https://ru.hexlet.io/lessons')).rejects.toThrow('404');
+  });
 });

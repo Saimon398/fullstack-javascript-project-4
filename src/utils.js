@@ -11,7 +11,7 @@ import Listr from 'listr';
  * @returns {Boolean}
  */
 export const isLocal = (verifiableURL, localURL) => {
-  if (verifiableURL.startsWith('/')) {
+  if (verifiableURL.startsWith('/') || verifiableURL.startsWith('./')) {
     return true;
   }
   const { hostname: verifiableHostName } = new URL(verifiableURL);

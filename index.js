@@ -53,5 +53,6 @@ export default (url, dirpath) => {
       const updatedHTML = updateAttributes(markup, links, outputDirname);
       logger('Update home page file with new names for local resourses');
       return fs.writeFile(absoluteFilepath, updatedHTML, 'utf-8');
-    });
+    })
+    .then(() => console.log(`Page was successfuly downloaded into '${outputDirname}/${outputFilename}'`));
 };

@@ -100,3 +100,4 @@ export const loadLocalSources = (links) => {
   return Promise.all(promises)
     .catch((error) => console.error(error));
 };
+

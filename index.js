@@ -53,9 +53,5 @@ export default (url, dirpath) => {
       const updatedHTML = updateAttributes(markup, links, outputDirname);
       logger('Update home page file with new names for local resourses');
       return fs.writeFile(absoluteFilepath, updatedHTML, 'utf-8');
-    })
-    .catch((error) => {
-      logger(error);
-      throw error;
     });
 };
